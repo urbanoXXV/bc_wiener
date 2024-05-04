@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Banco Preguntas - Wiener (No Oficial)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body class="bg-light">
+    <div class="container py-2">
+        <img src="logo.png" class="img-fluid" alt="...">
+        <h1 class="text-center mb-4">Banco Preguntas - Wiener (No Oficial)</h1>
+        <div class="card">
+            <div class="card-header">
+                Pregunta
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="question"></h5>
+                <ul class="list-group" id="options"></ul>
+            </div>
+            <div class="card-footer text-muted" id="feedback"></div>
+        </div>
+        <button id="nextButton" class="btn btn-primary mt-3" onclick="loadRandomQuestion()" style="display: none;">Siguiente Pregunta</button>
+    </div>
+
+    <script>
+        let questions = [];
+
+        // Cargar preguntas desde el CSV
+        Papa.parse("bd.csv", {
+            download: true,
+            complete: function(results) {
+                questions = results.data;
+                loadRandomQuestion();
+            },
+            header: false,
+            skipEmptyLines: true,
+            encoding: "utf-8",
+        });
+
+        // Función para cargar una pregunta al azar
+        function loadRandomQuestion() {
+            const feedbackElement = document.getElementById('feedback');
+            feedbackElement.textContent = ''; // Limpiar el feedback
+            document.getElementById('nextButton').style.display = 'none'; // Ocultar el botón de siguiente
+
+            if (questions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * (questions.length - 1)) + 1;
+                const selectedQuestion = questions[randomIndex];
+
+                const questionElement = document.getElementById('question');
+                const optionsElement = document.getElementById('options');
+                questionElement.textContent = selectedQuestion[1];
+
+                optionsElement.innerHTML = ''; // Limpiar opciones previas
+                const options = selectedQuestion.slice(2, 7); // Opciones están en las posiciones 2-6
+                options.forEach((option, index) => {
+                    const optionElement = document.createElement('li');
+                    optionElement.classList.add('list-group-item');
+                    optionElement.textContent = option;
+                    optionElement.onclick = function() { checkAnswer(selectedQuestion[7], option.charAt(0)) };
+                    optionsElement.appendChild(optionElement);
+                });
+            }
+        }
+
+        // Función para verificar la respuesta y mostrar feedback
+        function checkAnswer(correctAnswer, selectedOption) {
+            const feedbackElement = document.getElementById('feedback');
+            if (selectedOption === correctAnswer) {
+                feedbackElement.textContent = '¡Respuesta correcta!';
+                feedbackElement.className = 'text-success';
+                document.getElementById('nextButton').style.display = 'block'; // Mostrar el botón de siguiente
+            } else {
+                feedbackElement.textContent = 'Respuesta incorrecta. Intenta de nuevo.';
+                feedbackElement.className = 'text-danger';
+            }
+        }
+    </script>
+</body>
+</html>
