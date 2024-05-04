@@ -7,28 +7,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body class="bg-light">
-    <div class="container py-1">
+    <div class="container-fluid py-1">
         <img src="logo.png" class="img-fluid" alt="...">
         <h1 class="text-center mb-4">Banco Preguntas (No Oficial)</h1>
         <div id="controls">
-            <div class="mb-3">
-                <label for="courseSelector" class="form-label">Elige un curso:</label>
-                <select class="form-select" id="courseSelector" onchange="updateTopicSelector()">
-                    <!-- Opciones de curso se llenarán dinámicamente -->
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="topicSelector" class="form-label">Elige un tema:</label>
-                <select class="form-select" id="topicSelector" onchange="updateLevelSelector()">
-                    <!-- Opciones de tema se llenarán dinámicamente -->
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="levelSelector" class="form-label">Elige un nivel:</label>
-                <select class="form-select" id="levelSelector">
-                    <!-- Opciones de nivel se llenarán dinámicamente -->
-                </select>
-                <button class="btn btn-primary mt-3" onclick="startGame()">Iniciar</button>
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="courseSelector" class="form-label">Elige un curso:</label>
+                        <select class="form-select" id="courseSelector" onchange="updateTopicSelector()">
+                            <!-- Opciones de curso se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="topicSelector" class="form-label">Elige un tema:</label>
+                        <select class="form-select" id="topicSelector" onchange="updateLevelSelector()">
+                            <!-- Opciones de tema se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="levelSelector" class="form-label">Elige un nivel:</label>
+                        <select class="form-select" id="levelSelector"></select>
+                        <button class="btn btn-primary mt-3" onclick="startGame()">Iniciar</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="card" style="display: none;">
