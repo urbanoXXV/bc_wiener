@@ -2,15 +2,63 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Banco Preguntas - Wiener (No Oficial)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco Preguntas (No Oficial)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
+<style>
+    @media (max-width: 768px) {
+            body, .form-label, .btn, .card-title, .card-footer {
+                font-size: 16px;
+            }
+            .btn {
+                padding: 10px 20px;
+                width: 100%;
+            }
+            .form-select {
+                height: 50px;
+            }
+            .mb-3 {
+                margin-bottom: 1rem;
+            }
+            .card {
+                margin-top: 20px;
+            }
+        }
+</style>
 <body class="bg-light">
-    <div class="container py-2">
+    <div class="container-fluid py-1">
         <img src="logo.png" class="img-fluid" alt="...">
-        <h1 class="text-center mb-4">Banco Preguntas - Wiener (No Oficial)</h1>
-        <div class="card">
+        <h1 class="text-center mb-4">Banco Preguntas (No Oficial)</h1>
+        <div id="controls">
+            <div class="row">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="courseSelector" class="form-label">Elige un curso:</label>
+                        <select class="form-select" id="courseSelector" onchange="updateTopicSelector()">
+                            <!-- Opciones de curso se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="topicSelector" class="form-label">Elige un tema:</label>
+                        <select class="form-select" id="topicSelector" onchange="updateLevelSelector()">
+                            <!-- Opciones de tema se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="levelSelector" class="form-label">Elige un nivel:</label>
+                        <select class="form-select" id="levelSelector"></select>
+                        <button class="btn btn-primary mt-3" onclick="startGame()">Iniciar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="display: none;">
             <div class="card-header">
                 Pregunta
             </div>
@@ -21,32 +69,99 @@
             <div class="card-footer text-muted" id="feedback"></div>
         </div>
         <button id="nextButton" class="btn btn-primary mt-3" onclick="loadRandomQuestion()" style="display: none;">Siguiente Pregunta</button>
+        <button id="backButton" class="btn btn-secondary mt-3" onclick="goBack()" style="display: none;">Volver</button>
     </div>
 
     <script>
-        let questions = [];
-
+        let allQuestions = [];
+        function cleanString(input) {
+            // Elimina las barras invertidas extras y corrige dobles comillas internas mal escapadas
+            return input.replace(/\\+"/g, '"').replace(/""/g, '"').trim();
+        }
         // Cargar preguntas desde el CSV
         Papa.parse("bd.csv", {
             download: true,
             complete: function(results) {
-                questions = results.data;
-                loadRandomQuestion();
+                allQuestions = results.data.slice(1).map(row => 
+                    row.map(cell => cleanString(cell))
+                );
+                console.log(allQuestions)
+                updateCourseSelector();
             },
             header: false,
             skipEmptyLines: true,
             encoding: "utf-8",
+            quoteChar: '"'
         });
 
-        // Función para cargar una pregunta al azar
+        function updateCourseSelector() {
+            const courseSet = new Set(allQuestions.map(question => question[10]));
+            const courseSelector = document.getElementById('courseSelector');
+            courseSelector.innerHTML = Array.from(courseSet).map(course =>
+                `<option>${course}</option>`
+            ).join('');
+            updateTopicSelector(); // Llena el selector de tema automáticamente
+        }
+
+        function updateTopicSelector() {
+            const selectedCourse = document.getElementById('courseSelector').value;
+            const topicSet = new Set(
+                allQuestions.filter(question => question[10] === selectedCourse).map(question => question[9])
+            );
+            const topicSelector = document.getElementById('topicSelector');
+            topicSelector.innerHTML = Array.from(topicSet).map(topic =>
+                `<option>${topic}</option>`
+            ).join('');
+            updateLevelSelector(); // Llena el selector de nivel automáticamente
+        }
+
+        function updateLevelSelector() {
+            const selectedCourse = document.getElementById('courseSelector').value;
+            const selectedTopic = document.getElementById('topicSelector').value;
+            const levelSet = new Set(
+                allQuestions.filter(question => question[10] === selectedCourse && question[9] === selectedTopic)
+                            .map(question => question[8])
+            );
+            const levelSelector = document.getElementById('levelSelector');
+            levelSelector.innerHTML = Array.from(levelSet).map(level =>
+                `<option>${level}</option>`
+            ).join('');
+        }
+
+        function startGame() {
+            const selectedCourse = document.getElementById('courseSelector').value;
+            const selectedTopic = document.getElementById('topicSelector').value;
+            const selectedLevel = document.getElementById('levelSelector').value;
+            filteredQuestions = allQuestions.filter(question =>
+                question[8] === selectedLevel && question[9] === selectedTopic && question[10] === selectedCourse
+            );
+            document.querySelector('.card').style.display = 'block'; // Mostrar la tarjeta de preguntas
+            document.getElementById('controls').style.display = 'none'; // Ocultar controles
+            const backButton = document.getElementById('backButton');
+            if (backButton) {
+                backButton.style.display = 'block'; // Mostrar botón de volver
+                console.log(backButton)
+            } else {
+                console.error('El botón de volver no se encontró en el DOM');
+            }
+            loadRandomQuestion();
+        }
+
+        function goBack() {
+            document.querySelector('.card').style.display = 'none'; // Ocultar la tarjeta de preguntas
+            document.getElementById('controls').style.display = 'block'; // Mostrar controles
+            document.getElementById('backButton').style.display = 'none'; // Ocultar botón de volver
+        }
+
         function loadRandomQuestion() {
             const feedbackElement = document.getElementById('feedback');
             feedbackElement.textContent = ''; // Limpiar el feedback
             document.getElementById('nextButton').style.display = 'none'; // Ocultar el botón de siguiente
+            //document.getElementById('backButton').style.display = 'none'; // Ocultar el botón de volver durante la pregunta
 
-            if (questions.length > 0) {
-                const randomIndex = Math.floor(Math.random() * (questions.length - 1)) + 1;
-                const selectedQuestion = questions[randomIndex];
+            if (filteredQuestions.length > 0) {
+                const randomIndex = Math.floor(Math.random() * filteredQuestions.length);
+                const selectedQuestion = filteredQuestions[randomIndex];
 
                 const questionElement = document.getElementById('question');
                 const optionsElement = document.getElementById('options');
@@ -58,13 +173,12 @@
                     const optionElement = document.createElement('li');
                     optionElement.classList.add('list-group-item');
                     optionElement.textContent = option;
-                    optionElement.onclick = function() { checkAnswer(selectedQuestion[7], option.charAt(0)) };
+                    optionElement.onclick = function() { checkAnswer(selectedQuestion[7], String.fromCharCode(65 + index)) };
                     optionsElement.appendChild(optionElement);
                 });
             }
         }
 
-        // Función para verificar la respuesta y mostrar feedback
         function checkAnswer(correctAnswer, selectedOption) {
             const feedbackElement = document.getElementById('feedback');
             if (selectedOption === correctAnswer) {
